@@ -8,7 +8,7 @@ module OmniAuth
     class SAML
       class AuthRequest
 
-        def create(settings, params = {})
+        def create(settings)
           uuid = "_" + UUID.new.generate
           time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -23,13 +23,12 @@ module OmniAuth
           deflated_request  = Zlib::Deflate.deflate(request, 9)[2..-5]
           base64_request    = Base64.encode64(deflated_request)
           encoded_request   = CGI.escape(base64_request)
-          request_params    = "?SAMLRequest=" + encoded_request
 
-          params.each_pair do |key, value|
-            request_params << "&#{key}=#{CGI.escape(value.to_s)}"
-          end
+          request_param     = settings[:idp_sso_target_url].include?('?') ? '&' : '?'
+          request_param     << "SAMLRequest="
+          request_param     << encoded_request
 
-          settings[:idp_sso_target_url] + request_params
+          settings[:idp_sso_target_url] + request_param
         end
 
       end
